@@ -2,8 +2,8 @@
   import HeaderItem from '../components/HeaderItem.vue'
   import MessageBox from '../components/MessageBox.vue'
 </script>
-<template v-key="forceRerenderKey">
-  <MessageBox v-bind="appointmentExistError" v-show="!hideAppointmentExistError"></MessageBox>
+<template>
+  <MessageBox v-key="forceRerenderKey" v-bind="appointmentExistError" v-show="!hideAppointmentExistError"></MessageBox>
   <v-container v-show="hideAppointmentExistError" fluid class="main-section pa-0">
     <HeaderItem headerTitle="קביעת תור תחזוקה שנתית" homeLink="/ClientHome" hideSignout hideHome></HeaderItem>
     <v-row class="contents-row ma-0 px-3">
@@ -17,7 +17,7 @@
         :title="datepickerTitle"
         :allowed-dates="allowedDates" 
         header="בחר תאריך"
-        :key="datapickerKey">
+        :key="forceRerenderKey">
       </v-date-picker>
       <div class="buttons-container mt-9">
         <v-btn class="cancel-btn ff-outlined-btn me-6" variant="flat" to="/ClientHome" rounded="0">בטל</v-btn>
@@ -143,48 +143,55 @@ export default {
   {
     let api = new API();
     let token = localStorage.getItem('LOCAL_STORAGE_TOKEN_KEY');
-    await api.get('/nextAppointment', { "token" : token })
-    .then((response) => {
-      let appointmentDate = new Date(response.data.apt_date);
-      let dayDifference = Math.ceil((appointmentDate.getTime() - this.today.getTime()) / (1000 * 3600 * 24));
-      console.log(dayDifference);
 
-      if (dayDifference < 7)
-      {
-        this.hideAppointmentExistError = false;
-      }
-    })
-    .catch((error) => {
-        console.error('Error:', error);  
-    });
+    try
+    {
+        let response = await api.get('/nextAppointment', { "token" : token });
+        let appointmentDate = new Date(response.data.apt_date);
+        let dayDifference = Math.ceil((appointmentDate.getTime() - this.today.getTime()) / (1000 * 3600 * 24));
+        console.log(dayDifference);
 
+        if (appointmentDate != null)
+        {
+          this.hideAppointmentExistError = false;
+        }
+    }
+    catch(error)
+    {
+      console.error('Error:', error);
+    }
+    
     if(this.hideAppointmentExistError)
     {
-      await api.get('/lastAppointment', { "token" : token })
-      .then((response) => {
-        this.lastAppointmentDate = new Date(response.data.apt_date);
-        this.datepickerMonth = this.lastAppointmentDate.getMonth();
-        this.datepickerYear = this.today.getFullYear();
+      try
+      {
+          let response =  await api.get('/lastAppointment', { "token" : token });
+          this.lastAppointmentDate = new Date(response.data.apt_date);
+          this.datepickerMonth = this.lastAppointmentDate.getMonth();
+          this.datepickerYear = this.today.getFullYear();
 
-        if(this.datepickerMonth < this.today.getMonth())
-        {
-          this.datepickerYear += 1;
-        }
-        this.datapickerKey += 1;
-      })
-      .catch((error) => {
-          console.error('Error:', error);  
-      });
+          if(this.datepickerMonth < this.today.getMonth())
+          {
+            this.datepickerYear += 1;
+          }
+      }
+      catch(error)
+      {
+        console.error('Error:', error);  
+      }
 
-      await api.get('/appointmentsCount', { "month" : this.datepickerMonth + 1, "year" : this.datepickerYear})
-      .then((response) => {
+      try
+      {
+        let response = await api.get('/appointmentsCount', { "month" : this.datepickerMonth + 1, "year" : this.datepickerYear});        
         console.log(response)
         this.appointmentsCount = response.data;
-        console.log(this.appointmentsCount)
-      })
-      .catch((error) => {
-          console.error('Error:', error);  
-      });
+        console.log(this.appointmentsCount);
+
+      }
+      catch(error)
+      {
+        console.error('Error:', error);
+      }
     }
 
     this.forceRerenderKey += 1;
