@@ -33,25 +33,25 @@ body, html
   color: #333;
 }
 
-.v-input--density-custom-text-input-density .v-field--variant-outlined, .v-input--density-custom-text-input-density .v-field__input {
+.v-input--density-custom-input-density .v-field--variant-outlined, .v-input--density-custom-input-density .v-field__input {
   height: 40px;
   padding-top: 0px;
   padding-bottom: 0px;
 }
 
-.v-input--custom-text-input-density .v-field--variant-outlined, .v-input--custom-text-input-density .v-field--single-line, .v-input--custom-text-input-density .v-field--no-label {
+.v-input--custom-input-density .v-field--variant-outlined, .v-input--custom-input-density .v-field--single-line, .v-input--custom-input-density .v-field--no-label {
   padding-bottom: 7px;
 }
 
-.v-input--density-custom-text-input-density .v-field--variant-solo, .v-input--custom-text-input-density .v-field--variant-solo-inverted, .v-input--custom-text-input-density .v-field--variant-solo-filled, .v-input--custom-text-input-density .v-field--variant-filled {
+.v-input--density-custom-input-density .v-field--variant-solo, .v-input--custom-input-density .v-field--variant-solo-inverted, .v-input--custom-input-density .v-field--variant-solo-filled, .v-input--custom-input-density .v-field--variant-filled {
   --v-input-control-height: 48px;
   --v-field-padding-bottom: 0px;
 }
 
-.v-input--custom-text-input-density .v-field--variant-solo .v-label.v-field-label--floating, .v-input--custom-text-input-density .v-field--variant-solo-inverted .v-label.v-field-label--floating, .v-input--custom-text-input-density .v-field--variant-filled .v-label.v-field-label--floating, .v-input--custom-text-input-density .v-field--variant-solo-filled .v-label.v-field-label--floating {
+.v-input--custom-input-density .v-field--variant-solo .v-label.v-field-label--floating, .v-input--custom-input-density .v-field--variant-solo-inverted .v-label.v-field-label--floating, .v-input--custom-input-density .v-field--variant-filled .v-label.v-field-label--floating, .v-input--custom-input-density .v-field--variant-solo-filled .v-label.v-field-label--floating {
   top: 2.5px;
 }
-.v-input--custom-text-input-density .v-field__input {
+.v-input--custom-input-density .v-field__input {
   row-gap: 3.5px;
 }
 
@@ -94,6 +94,7 @@ body, html
 {
   height: 40px !important;
   font-size: 18px !important;
+  max-width: 400px;
   font-weight: 500;
   color: #fafafa !important;
   background-color: #d10019 !important;

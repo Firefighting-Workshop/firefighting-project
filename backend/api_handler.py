@@ -1,5 +1,5 @@
-from flask import Flask, jsonify, request
-from flask_cors import CORS
+from flask import Flask, jsonify, request, make_response
+from flask_cors import CORS, cross_origin
 import mysql.connector
 from mysql.connector import pooling
 import random
@@ -165,8 +165,8 @@ def request_client_auth():
     current_time = time()
 
     # Check if the client is blocked from resending OTPs.
-    #if check_client_blocked(client_id):
-    #  return jsonify({"error": "Maximum OTP attempts exceeded. Please try again later."}), 403
+    if check_client_blocked(client_id):
+      return jsonify({"error": "Maximum OTP attempts exceeded. Please try again later."}), 403
 
     try:
         client_data = get_client_data(client_id)
@@ -444,6 +444,38 @@ def change_appointment():
     conn.close()
     return jsonify({'message': 'Appointment updated successfully'}), 200
 
+
+# PUT /changeClientAppointment
+@app.route('/changeClientAppointment', methods=['PUT'])
+def change_client_appointment():
+    data = request.get_json()
+    apt_client = data.get('apt_client')
+    apt_date = data.get('apt_date')
+    new_apt_date = data.get('new_apt_date')
+
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    cur = conn.cursor()
+    try:
+        cur.execute(
+            "UPDATE Appointment SET apt_date = %s WHERE apt_date = %s AND apt_client = %s",
+            (new_apt_date, apt_date, apt_client)
+        )
+        conn.commit()
+    except mysql.connector.Error as err:
+        conn.rollback()
+        app.logger.error("Error: Could not execute UPDATE statement.")
+        app.logger.error(err)
+        cur.close()
+        conn.close()
+        return jsonify({"error": "Database error occurred"}), 500
+
+    cur.close()
+    conn.close()
+    return jsonify({'message': 'Appointment updated successfully'}), 200
+
 # POST /makeAppointment
 @app.route('/makeAppointment', methods=['POST'])
 def make_appointment():
@@ -479,6 +511,162 @@ def make_appointment():
     cur.close()
     conn.close()
     return jsonify({'message': 'Appointment added successfully'}), 200
+
+# GET /appointmentsInDate
+@app.route('/appointmentsInDate', methods=['GET'])
+def get_appointments_in_date():
+    """Fetch all appointments for a specific date."""
+    date = request.args.get('date')  # Get the date from the query parameters
+    if not date:
+        return jsonify({"error": "Date parameter is required"}), 400
+
+    try:
+        conn = get_db_connection()
+        if conn is None:
+            raise Exception("Database connection failed")
+        
+        cur = conn.cursor(dictionary=True)
+        cur.execute("""SELECT a.apt_date, 
+                        a.apt_client, 
+                        a.apt_emp_executive, 
+                        e.emp_firstname, 
+                        e.emp_lastname, 
+                        c.client_name, 
+                        c.client_city, 
+                        c.client_street, 
+                        c.client_street_number
+                    FROM Appointment a 
+                    LEFT JOIN Employee e ON a.apt_emp_executive = e.emp_ID 
+                    LEFT JOIN Client c ON a.apt_client = c.client_id  
+                    WHERE a.apt_date = %s AND a.apt_status = 'open'""", (date,))
+        results = cur.fetchall()
+
+        return jsonify(results), 200 
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
+
+# GET /unassignedAppointmentsInDate
+@app.route('/unassignedAppointmentsInDate', methods=['GET'])
+def get_unassigned_appointments_in_date():
+    """Fetch all appointments for a specific date."""
+    date = request.args.get('date')  # Get the date from the query parameters
+    if not date:
+        return jsonify({"error": "Date parameter is required"}), 400
+
+    try:
+        conn = get_db_connection()
+        if conn is None:
+            raise Exception("Database connection failed")
+        
+        cur = conn.cursor(dictionary=True)
+        cur.execute("""SELECT a.apt_date, 
+                        a.apt_client,  
+                        c.client_name, 
+                        c.client_city, 
+                        c.client_street, 
+                        c.client_street_number, 
+                        cr.rep_phone 
+                    FROM Appointment a 
+                    LEFT JOIN Client c ON a.apt_client = c.client_id 
+                    LEFT JOIN ClientRepresentative cr ON c.client_rep = cr.rep_id 
+                    WHERE a.apt_date = %s AND a.apt_status = 'open' AND a.apt_emp_executive is NULL""", (date,))
+        results = cur.fetchall()
+
+        return jsonify(results), 200 
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
+
+# GET /allEmployees
+@app.route('/allEmployees', methods=['GET'])
+def get_all_employees():
+    """Fetch all employees from the Employee table."""
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    cur = conn.cursor(dictionary=True)
+    cur.execute("""
+        SELECT emp_ID, emp_firstname, emp_lastname, emp_role, emp_phone, emp_user 
+        FROM Employee
+    """)
+    results = cur.fetchall()
+    cur.close()
+    conn.close()
+    if results:
+        return jsonify(results) 
+    else:
+        return jsonify({"error": "No employees found"}), 404
+
+# PUT /assignExecutiveEmployee
+@app.route('/assignExecutiveEmployee', methods=['PUT'])
+def assign_executive_employee():
+    """Assign executive employees to appointments."""
+    try:
+        data = request.get_json()
+        appointments = data.get('appointments')  # Get the JSON data from the request body
+
+        if not isinstance(appointments, list):
+            response = make_response(jsonify({"error": "Invalid data format, expected a list of objects"}), 400)
+            response.headers.add('Access-Control-Allow-Origin', '*')
+            return response
+
+        conn = get_db_connection()
+        if conn is None:
+            response = make_response(jsonify({"error": "Database connection failed"}), 500)
+            response.headers.add('Access-Control-Allow-Origin', '*')
+            return response
+
+        cur = conn.cursor()
+        for appointment in appointments:
+            apt_date = appointment.get('apt_date')  # Get the date from the JSON object
+            apt_client = appointment.get('apt_client')  # Get the client_id from the JSON object
+            apt_emp_executive = appointment.get('apt_emp_executive')  # Get the executive ID from the JSON object
+
+            if not apt_date or not apt_client:
+                conn.rollback()
+                cur.close()
+                conn.close()
+                response = make_response(jsonify({"error": "Missing required parameters in one of the objects"}), 400)
+                response.headers.add('Access-Control-Allow-Origin', '*')
+                return response
+
+            cur.execute("""
+                UPDATE Appointment 
+                SET apt_emp_executive = %s 
+                WHERE apt_date = %s AND apt_client = %s
+            """, (apt_emp_executive, apt_date, apt_client))
+            
+            if cur.rowcount == 0:
+                conn.rollback()
+                cur.close()
+                conn.close()
+                response = make_response(jsonify({"error": f"No matching appointment found for date: {apt_date}, client_id: {apt_client}"}), 404)
+                response.headers.add('Access-Control-Allow-Origin', '*')
+                return response
+
+        conn.commit()
+        cur.close()
+        conn.close()
+        response = make_response(jsonify({"message": "Executive employees assigned successfully"}), 200)
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+    
+    except Exception as e:
+        app.logger.error(f"Error: {e}")
+        response = make_response(jsonify({"error": str(e)}), 500)
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+    
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)  # Use 'adhoc' for testing; in production, use a proper SSL certificate

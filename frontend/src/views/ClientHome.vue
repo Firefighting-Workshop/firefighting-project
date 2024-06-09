@@ -53,7 +53,6 @@ export default {
   name: 'ClientHome',
   rtl: true,
   data: () => ({
-      tab: null,
       appointmentNotFound: true,
       appointmentDate: "",
       clientCity: "",

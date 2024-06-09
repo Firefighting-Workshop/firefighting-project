@@ -3,7 +3,7 @@
   import MessageBox from '../components/MessageBox.vue'
 </script>
 <template>
-  <MessageBox v-bind="timeWindowError" v-show="!hideTimeWindowError"></MessageBox>
+  <MessageBox :key="forceRerenderKey" v-bind="timeWindowError" v-show="!hideTimeWindowError"></MessageBox>
   <v-container v-show="hideTimeWindowError" fluid class="main-section pa-0">
     <HeaderItem headerTitle="שינוי תור קרוב" homeLink="/ClientHome" hideSignout hideHome></HeaderItem>
     <v-row class="contents-row ma-0 px-3">

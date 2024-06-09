@@ -12,7 +12,7 @@
             hide-details="auto"
             prepend-inner-icon="mdi-account-outline" 
             variant="outlined"
-            density="custom-text-input-density"
+            density="custom-input-density"
           >
           </v-text-field>
           <v-text-field
@@ -23,7 +23,7 @@
             label="סיסמה" 
             hide-details="auto"
             variant="outlined"
-            density="custom-text-input-density"
+            density="custom-input-density"
             @click:append-inner="visible = !visible"></v-text-field>
             <v-checkbox hide-details class="mt-3" color="red-darken-3" label="זכור אותי"></v-checkbox>
           <v-btn class="login-btn mt-2" variant="flat" rounded="xl">כניסה</v-btn>
@@ -39,7 +39,7 @@
                 @change="validateBnOnlyDigits()"
                 prepend-inner-icon="mdi-numeric" 
                 variant="outlined"
-                density="custom-text-input-density"
+                density="custom-input-density"
                 :maxlength="9">
               </v-text-field>
               <p class="error-details mt-2 text-red">{{ RequestOtpError }}</p>
@@ -53,7 +53,7 @@
                 label="קוד אימות שקיבלת למכשיר הנייד" 
                 prepend-inner-icon="mdi-numeric" 
                 variant="outlined" 
-                density="custom-text-input-density"
+                density="custom-input-density"
                 :maxlength="6">
               </v-text-field>
               <p class="error-details mt-2 text-red">{{ OtpError }}</p>

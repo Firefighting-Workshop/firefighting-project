@@ -1,6 +1,10 @@
 <script setup>
-  import HeaderItem from './HeaderItem.vue'
+import { useRouter } from 'vue-router';
+import HeaderItem from './HeaderItem.vue';
+
+const router = useRouter();
 </script>
+
 <template>
     <v-container fluid class="main-section pa-0">
         <HeaderItem :headerTitle="messageTitle" hideSignout hideHome hideBack hidePlaceholder></HeaderItem>
@@ -11,12 +15,13 @@
             <p class="message-details mt-4">{{ messageDetails }}</p>
         </div>
         <div class="buttons-container mt-6">
-            <v-btn class="cancel-btn ff-outlined-btn mx-3" v-show="!hideCancel" variant="flat" @click="this.$router.go(-1)" rounded="0">{{ cancelText }}</v-btn>
+            <v-btn class="cancel-btn ff-outlined-btn mx-3" v-show="!hideCancel" variant="flat" @click="router.go(-1)" rounded="0">{{ cancelText }}</v-btn>
             <v-btn class="submit-btn ff-btn mx-3" variant="outlined" v-show="!hideSubmit" @click="submitFunction" rounded="0">{{ submitText }}</v-btn>
         </div>
         </v-row>
     </v-container>
 </template>
+
 <script>
 export default {
   name: "MessageBox",
