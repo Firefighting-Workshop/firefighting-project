@@ -204,7 +204,7 @@ export default {
 
       try
       {
-          let response = await api.get('/appointmentsCount', { "month" : this.datepickerMonth + 1, "year" : this.datepickerYear});
+          let response = await api.get('/appointmentsCount', {"token": token, "month": this.datepickerMonth + 1, "year" : this.datepickerYear});
           console.log(response);
           this.appointmentsCount = response.data;
           console.log(this.appointmentsCount);

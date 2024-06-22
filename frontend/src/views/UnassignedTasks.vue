@@ -108,10 +108,10 @@
             <p class="error-details text-red text-center mt-4">{{ dateNotSelectedErrorMsg }}</p>
           </div>
           <div class="buttons-container mt-6">
-            <v-btn class="ff-outlined-btn mx-3" variant="flat" width="145px" @click="cancelAlternativeDateSelection" rounded="0">
+            <v-btn class="ff-outlined-btn mx-3" variant="flat" width="140px" @click="cancelAlternativeDateSelection" rounded="0">
               בטל
             </v-btn>
-            <v-btn class="ff-btn mx-3" variant="outlined" width="145px" @click="updateSelectedAppointments" rounded="0">
+            <v-btn class="ff-btn mx-3" variant="outlined" width="140px" @click="updateSelectedAppointments" rounded="0">
               אשר
             </v-btn>
           </div>
@@ -125,10 +125,9 @@
 import API from '@/api/api.js';
 
 const api = new API();
-const token = localStorage.getItem('LOCAL_STORAGE_TOKEN_KEY');
 
 export default {
-  name: 'UnssignedTasks',
+  name: 'UnassignedTasks',
   rtl: true,
   data: () => ({
     selectedDate: new Date(),
@@ -152,7 +151,8 @@ export default {
   methods: {
     async getUnassignedAppointmentsInDate() {
       try {
-        const response = await api.get('/unassignedAppointmentsInDate', { date: this.formattedSelectedDate });
+        const token = localStorage.getItem('LOCAL_STORAGE_TOKEN_KEY');
+        const response = await api.get('/unassignedAppointmentsInDate', {"token": token, "date": this.formattedSelectedDate });
         this.appointments = response.data.map(appointment => ({
           ...appointment,
           rep_phone_link: `<a href="tel:${appointment.rep_phone}">${appointment.rep_phone}</a>`,
@@ -167,12 +167,14 @@ export default {
       }
     },
     async changeSelectedAppointmentDateInDB() {
+      const token = localStorage.getItem('LOCAL_STORAGE_TOKEN_KEY');
       const formatedAptDate = this.formatDate(this.selectedAppointment[0].apt_date);
       try {
         await api.put('/changeClientAppointment', {
-          apt_client: this.selectedAppointment[0].apt_client,
-          apt_date: formatedAptDate,
-          new_apt_date: this.formattedSelectedAlternativeDate
+          "token": token,
+          "apt_client": this.selectedAppointment[0].apt_client,
+          "apt_date": formatedAptDate,
+          "new_apt_date": this.formattedSelectedAlternativeDate
         });
       } catch (error) {
         console.error('Error:', error);

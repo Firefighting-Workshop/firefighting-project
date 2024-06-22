@@ -2,7 +2,9 @@ import * as axios from 'axios';
 
 export default class API {
     constructor() {
-      this.api_url = "http://13.50.199.5:5000/";
+      // for dev, use: 'http://13.50.199.5:5000/'
+      // for prod, use: 'https://api.firefighting-workshop.top:5000/'
+      this.api_url = "https://api.firefighting-workshop.top:5000/"; 
       this.api_client = null;
     }
   
@@ -22,16 +24,13 @@ export default class API {
         return response;
       }, async function (error) {
         const originalRequest = error.config;
-        if ([403, 401].includes(error.response.status) && !originalRequest._retry) {
-          // Error 403, JWT token is no longer valid
-          //console.log("Authorization error, redirecting to login");
-          console.log(error);
-  
-          // Remove the token from local storage
-          //localStorage.removeItem("🥕🐟");
-  
-          // Redirect to the login page
-          //window.location.href = "/login";
+        if ([403, 401].includes(error.response.status) &&
+         error.response.data?.type == 'TokenError' && 
+         !originalRequest._retry) {
+          // Error 403 or 401, JWT token is exiped or invalid.
+          // Redirect to the login page.
+
+          window.location.href = "/";
         }
         return Promise.reject(error);
       });

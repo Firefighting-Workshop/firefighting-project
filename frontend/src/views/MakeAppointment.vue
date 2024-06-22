@@ -21,7 +21,7 @@
       </v-date-picker>
       <div class="buttons-container mt-9">
         <v-btn class="cancel-btn ff-outlined-btn me-6" variant="flat" to="/ClientHome" rounded="0">בטל</v-btn>
-        <v-btn class="make-appointment ff-btn" variant="outlined" @click="makeAppointment" rounded="0">קבע תור</v-btn>
+        <v-btn class="make-appointment ff-btn" variant="flat" @click="makeAppointment" rounded="0">קבע תור</v-btn>
       </div>
     </v-row>
   </v-container>
@@ -182,7 +182,7 @@ export default {
 
       try
       {
-        let response = await api.get('/appointmentsCount', { "month" : this.datepickerMonth + 1, "year" : this.datepickerYear});        
+        let response = await api.get('/appointmentsCount', {"token": token, "month": this.datepickerMonth + 1, "year" : this.datepickerYear});        
         console.log(response)
         this.appointmentsCount = response.data;
         console.log(this.appointmentsCount);

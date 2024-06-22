@@ -1,13 +1,14 @@
 <template>
     <v-card class="login-card">
       <v-tabs class="login-tabs" v-model="tab" align-tabs="center" color="deep-purple-accent-4" grow>
-        <v-tab :value="WorkerLoginTab">כניסה כעובד</v-tab>
+        <v-tab :value="EmployeeLoginTab">כניסה כעובד</v-tab>
         <v-tab :value="ClientLoginTab">כניסה כלקוח</v-tab>
       </v-tabs>
       <v-card-text class="py-0 pb-2 px-2">
       <v-tabs-window v-model="tab">
-        <v-tabs-window-item class="text-center pa-4" value="WorkerLoginTab">
+        <v-tabs-window-item class="text-center pa-4" value="EmployeeLoginTab">
           <v-text-field class="mt-4" 
+            v-model="employeeUser"
             label="שם משתמש" 
             hide-details="auto"
             prepend-inner-icon="mdi-account-outline" 
@@ -17,6 +18,7 @@
           </v-text-field>
           <v-text-field
             class="mt-6"
+            v-model="employeePassword"
             :append-inner-icon="visible ? 'mdi-eye-off' : 'mdi-eye'" 
             prepend-inner-icon="mdi-lock-outline" 
             :type="visible ? 'text' : 'password'"  
@@ -25,8 +27,9 @@
             variant="outlined"
             density="custom-input-density"
             @click:append-inner="visible = !visible"></v-text-field>
-            <v-checkbox hide-details class="mt-3" color="red-darken-3" label="זכור אותי"></v-checkbox>
-          <v-btn class="login-btn mt-2" variant="flat" rounded="xl">כניסה</v-btn>
+            <p class="error-details mt-2 text-red">{{ employeeLoginError }}</p>
+            <v-checkbox hide-details class="mt-3" v-model="rememberMe" color="red-darken-3" density="compact" label="זכור אותי"></v-checkbox>
+          <v-btn class="login-btn mt-2" @click="employeeLogin" variant="flat" rounded="xl">כניסה</v-btn>
         </v-tabs-window-item>
         <v-tabs-window-item value="ClientLoginTab">
           <v-carousel id="client-login-slides" class="pa-4" v-model="activeSlide" hide-delimiters :continuous="false" :show-arrows="false" :touch="false">
@@ -42,8 +45,8 @@
                 density="custom-input-density"
                 :maxlength="9">
               </v-text-field>
-              <p class="error-details mt-2 text-red">{{ RequestOtpError }}</p>
-              <v-btn class="login-btn mt-7" @click="sendOTP()" variant="flat" rounded="xl">שלח לי קוד</v-btn>
+              <p class="error-details mt-2 text-red">{{ requestOtpError }}</p>
+              <v-btn class="login-btn mt-7" @click="sendOTP" variant="flat" rounded="xl">שלח לי קוד</v-btn>
             </v-carousel-item>
             <v-carousel-item class="pa-0" :key="1">
               <p class="client-login-desc mt-2 pb-2 text-right">קוד כניסה חד פעמי נשלח לנייד הרשום אצלנו.</p>
@@ -56,12 +59,12 @@
                 density="custom-input-density"
                 :maxlength="6">
               </v-text-field>
-              <p class="error-details mt-2 text-red">{{ OtpError }}</p>
-              <v-btn class="login-btn mt-6" @click="login()" variant="flat" rounded="xl">כניסה</v-btn>
+              <p class="error-details mt-2 text-red">{{ otpError }}</p>
+              <v-btn class="login-btn mt-6" @click="clientLogin" variant="flat" rounded="xl">כניסה</v-btn>
               <p class="mt-4">לא קיבלתם קוד? 
-                <a class="resend_otp_link" @click="sendOTP()" href="#">לחצו כאן</a>
+                <a class="resend_otp_link" @click="sendOTP" href="#">לחצו כאן</a>
               </p>
-              <p class="error-details text-red">{{ RequestOtpError }}</p>
+              <p class="error-details text-red">{{ requestOtpError }}</p>
             </v-carousel-item>
           </v-carousel>
         </v-tabs-window-item>
@@ -148,16 +151,22 @@
 </style>
 <script>
 import API from '@/api/api.js';
+let api = new API();
+
 export default {
   name: 'LoginCard',
   rtl: true,
   data: () => ({
       tab: null,
       visible: false,
+      employeeUser: null,
+      employeePassword: null,
+      employeeLoginError: '',
       clientBn: '',
       otpInput: '',
-      RequestOtpError: '',
-      OtpError: '',
+      requestOtpError: '',
+      otpError: '',
+      rememberMe: false,
       activeSlide: 0
     }),
   methods: {
@@ -165,18 +174,17 @@ export default {
       const regex = /^\d{9}$/;
       this.isValid = regex.test(this.clientBn);
       if (!this.isValid) {
-        this.RequestOtpError = 'המספר שהזנת אינו תקין, יש להזין 9 ספרות.';
+        this.requestOtpError = 'המספר שהזנת אינו תקין, יש להזין 9 ספרות.';
       }
       else
       {
-        this.RequestOtpError = '';
+        this.requestOtpError = '';
       }
     },
     sendOTP()
     {
-      if(this.RequestOtpError == '')
+      if(this.requestOtpError == '')
       {
-        let api = new API();
         console.log("Client ID:", this.clientBn);
         api.post('/requestClientAuth', { "client_id" : this.clientBn })
           .then((response) => {
@@ -187,55 +195,120 @@ export default {
           .catch((error) => {
             switch (error.response.status) { 
               case 403:
-                this.RequestOtpError = 'חרגת מסך בקשות לקוד כניסה, אנא נסה מאוחר יותר.'
+                this.requestOtpError = 'חרגת מסך בקשות לקוד כניסה, אנא נסה מאוחר יותר.';
                 break;
               case 404:
-                this.RequestOtpError = 'מספר זה אינו נמצא במאגרנו, וודא שהזנת את המספר הנכון.'
+                this.requestOtpError = 'מספר זה אינו נמצא במאגרנו, וודא שהזנת את המספר הנכון.';
                 break;
               case 429:
+                this.requestOtpError = 'חרגת מסך בקשות לקוד כניסה, אנא נסה מאוחר יותר.';
                 console.log("Too many requests.");
                 break;
               default:
-                this.RequestOtpError = "אירעה שגיאה, אנא נסה שנית."
+                this.requestOtpError = "אירעה שגיאה, אנא נסה שנית.";
                 console.error('Error:', error);
                 break;
               }
           });
       }
     },
-    login()
+    clientLogin()
     {
-      let api = new API();
-        console.log("Client ID:", this.clientBn);
-        api.post('/clientAuth', { "client_id" : this.clientBn, "otp": this.otpInput })
-          .then((response) => {
-            console.log(response)
+      console.log("Client ID:", this.clientBn);
+      api.post('/clientAuth', { "client_id" : this.clientBn, "otp": this.otpInput })
+        .then((response) => {
+          console.log(response)
+          localStorage.setItem('LOCAL_STORAGE_TOKEN_KEY', response.data.token);
+          this.$router.push('/ClientHome');
+        })
+        .catch((error) => {
+          switch (error.response.status) { 
+            case 403:
+              this.otpError = 'חרגת מסך ניסיונות הכניסה, אנא נסה מאוחר יותר.';
+              console.error('Error:', error);
+              break;
+            case 401:
+              this.otpError = 'הקוד שהזנת שגוי.';
+              console.error('Error:', error);
+              break;
+            case 400:
+              this.otpError = 'פג תוקפו של קוד הכניסה.';
+              console.error('Error:', error);
+              break;
+            case 429:
+              this.otpError = 'חרגת מסך ניסיונות הכניסה, אנא נסה מאוחר יותר.';
+              console.log("Too many requests.");
+              break;
+            default:
+              this.otpError = "אירעה שגיאה, אנא נסה שנית.";
+              console.error('Error:', error);
+              break;
+            }
+        });
+    },
+    async employeeLogin()
+    {
+        try
+        {
+            let response = await api.post('/employeeAuth', { "emp_user" : this.employeeUser, "emp_password": this.employeePassword});
             localStorage.setItem('LOCAL_STORAGE_TOKEN_KEY', response.data.token);
-            this.$router.push('/ClientHome');
-          })
-          .catch((error) => {
-            switch (error.response.status) { 
-              case 403:
-                this.OtpError = 'חרגת מסך ניסיונות הכניסה, אנא נסה מאוחר יותר.'
-                console.error('Error:', error);
+            this.$router.push('/EmployeeHome');
+        }
+        catch(error)
+        {
+          console.log(error);
+
+          switch (error.response.status) 
+          {
+            case 400:
+              this.employeeLoginError = "יש להזין שם משתמש וסיסמה.";
+              break;
+            case 401:
+              this.employeeLoginError = "שם המשתמש או הסיסמה שהוזנו לא נכונים."
+              break;
+            case 403:
+              this.employeeLoginError = 'חרגת מסך ניסיונות הכניסה, אנא נסה מאוחר יותר.'
+              break;
+            case 429:
+              this.employeeLoginError = 'חרגת מסך ניסיונות הכניסה, אנא נסה מאוחר יותר.'
+              break;
+            default:
+              this.employeeLoginError = "אירעה שגיאה, אנא נסה שנית."
                 break;
-              case 401:
-                this.OtpError = 'הקוד שהזנת שגוי.'
-                console.error('Error:', error);
-                break;
-              case 400:
-                this.OtpError = 'פג תוקפו של קוד הכניסה.'
-                console.error('Error:', error);
-                break;
-              case 429:
-                console.log("Too many requests.");
-                break;
-              default:
-                this.OtpError = "אירעה שגיאה, אנא נסה שנית."
-                console.error('Error:', error);
-                break;
-              }
-          });
+          }
+        }
+    }
+  },
+  watch: {
+    rememberMe(newValue) {
+      if (newValue && this.employeeUser) {
+        localStorage.setItem("REMEMBER_ME", true);
+        localStorage.setItem("LAST_USER", this.employeeUser);
+      } else {
+        localStorage.removeItem("REMEMBER_ME");
+        localStorage.removeItem("LAST_USER");
+      }
+    },
+    employeeUser(newValue) {
+      if (this.rememberMe && newValue) {
+        localStorage.setItem("LAST_USER", newValue);
+      }
+    }
+  },
+  mounted()
+  {
+    let rememberMe = localStorage.getItem("REMEMBER_ME");
+    console.log(rememberMe);
+    let lastUser = localStorage.getItem("LAST_USER");
+
+    if(rememberMe == "true")
+    {
+      this.employeeUser = lastUser;
+      this.rememberMe = true;
+    }
+    else
+    {
+        this.rememberMe = false;
     }
   }
 }

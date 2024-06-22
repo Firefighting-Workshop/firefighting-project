@@ -63,19 +63,19 @@
         <template v-slot:bottom>
           <div class="appointments-footer text-center pa-2">
             <v-pagination class="appointments-pagination" v-model="page" :length="pageCount" size="30px" total-visible="0"/>
-            <v-btn class="ff-btn me-4" variant="flat" rounded="0" v-show="isSelectedAppoinmentsNotEmpty" @click="showEmployeeSelectDialog = true" width="95px">שבץ טכנאי</v-btn>
-            <v-btn class="ff-btn" variant="flat" rounded="0" v-show="isSelectedAppoinmentsNotEmpty" @click="cleanAssignments" width="95px">נקה שיבוץ</v-btn>
+            <v-btn class="ff-btn me-4" variant="flat" rounded="0" v-show="isSelectedAppoinmentsNotEmpty && isAuthorized" @click="showEmployeeSelectDialog = true" width="95px">שבץ טכנאי</v-btn>
+            <v-btn class="ff-btn" variant="flat" rounded="0" v-show="isSelectedAppoinmentsNotEmpty && isAuthorized" @click="cleanAssignments" width="95px">נקה שיבוץ</v-btn>
           </div>
         </template>
       </v-data-table>
     </v-row>
     <v-row class="contents-row ma-0 align-center px-3 py-0 pb-6 flex-0-1">
-      <v-btn class="ff-btn" variant="flat" min-width="250px" width="80%" height="55px !important" prepend-icon="mdi-calendar-question-outline" rounded="0" to="/UnassignedTasks">עבור לתורים שטרם שובצו</v-btn>
+      <v-btn class="ff-btn" variant="flat" v-show="isAuthorized" min-width="250px" width="80%" height="55px !important" prepend-icon="mdi-calendar-question-outline" rounded="0" to="/UnassignedTasks">עבור לתורים שטרם שובצו</v-btn>
     </v-row>
     <v-dialog v-model="showEmployeeSelectDialog" fullscreen hide-overlay>
       <v-card>
         <HeaderItem headerTitle="בחירת טכנאי" hideSignout hideBack hideHome hidePlaceholder></HeaderItem>
-        <v-card-text class="employee-select-content">
+        <v-card-text class="dialog-card-content">
           <div class="employee-select-input mt-9">
             <v-autocomplete
               v-model="selectedEmployee"
@@ -97,8 +97,8 @@
             </v-autocomplete>
           </div>
           <div class="buttons-container mt-6">
-            <v-btn class="ff-outlined-btn mx-3" variant="flat" width="145px" @click="cancelEmployeeSelection" rounded="0">בטל</v-btn>
-            <v-btn class="ff-btn mx-3" variant="outlined" width="145px" @click="updateSelectedAppointments" rounded="0">אשר</v-btn>
+            <v-btn class="ff-outlined-btn mx-3" variant="flat" width="140px" @click="cancelEmployeeSelection" rounded="0">בטל</v-btn>
+            <v-btn class="ff-btn mx-3" variant="outlined" width="140px" @click="updateSelectedAppointments" rounded="0">אשר</v-btn>
           </div>
         </v-card-text>
       </v-card>
@@ -108,9 +108,7 @@
 
 <script>
 import API from '@/api/api.js';
-
 let api = new API();
-let token = localStorage.getItem('LOCAL_STORAGE_TOKEN_KEY');
 
 export default {
   name: 'AssignTasks',
@@ -130,15 +128,42 @@ export default {
     showEmployeeSelectDialog: false,
     forceRerenderKey: 0,
     selectedEmployee: null,
+    isAuthorized: false
   }),
   async mounted() {
+    await this.getUserRole();
     await this.getAppointmentsInDate();
     await this.getAllEmployees();
   },
   methods: {
+    async getUserRole()
+    {
+      try 
+      {
+        let token = localStorage.getItem('LOCAL_STORAGE_TOKEN_KEY');
+        let response = await api.get('/userRole', {"token": token});
+
+        console.log(response.data);
+
+        if (response.data == 'Manager')
+        {
+          this.isAuthorized = true;
+        }
+        else
+        {
+          this.isAuthorized = false;
+        }
+      }
+      catch (error) 
+      {
+        console.error('Error:', error);
+      }
+    },
     async getAppointmentsInDate() {
-      try {
-        let response = await api.get('/appointmentsInDate', { "date": this.formattedSelectedDate });
+      try 
+      {
+        let token = localStorage.getItem('LOCAL_STORAGE_TOKEN_KEY');
+        let response = await api.get('/appointmentsInDate', {"token": token, "date": this.formattedSelectedDate });
         this.appointments = response.data.map(appointment => ({
           ...appointment,
           "emp_fullname": `${appointment['emp_firstname'] || ''} ${appointment['emp_lastname'] || ''}`,
@@ -155,8 +180,10 @@ export default {
     },
     async updateSelectedAppointmentsInDB(appointments)
     {
-      try {
-        let response = await api.put('/assignExecutiveEmployee', { "appointments": appointments });
+      try 
+      {
+        let token = localStorage.getItem('LOCAL_STORAGE_TOKEN_KEY');
+        let response = await api.put('/assignExecutiveEmployee', {"token": token, "appointments": appointments });
         this.forceRerenderKey++;
         console.log(response.data);
       } 
@@ -168,8 +195,10 @@ export default {
       return details;
     },
     async getAllEmployees() {
-      try {
-        let response = await api.get('/allEmployees');
+      try 
+      {
+        let token = localStorage.getItem('LOCAL_STORAGE_TOKEN_KEY');
+        let response = await api.get('/allEmployees', {"token": token});
         this.employees = response.data.map(employee => ({
           ...employee,
           "emp_fullname": `${employee.emp_firstname} ${employee.emp_lastname}`
@@ -306,14 +335,6 @@ export default {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-}
-
-.employee-select-content {
-  display: flex;
-  flex-wrap: wrap;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 50px !important;
 }
 
 .buttons-container

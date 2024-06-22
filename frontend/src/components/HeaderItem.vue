@@ -1,9 +1,14 @@
+<script setup>
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+</script>
 <template>
     <v-container class="header-container ma-0 pa-0" fluid>
       <router-link class="header-btn" v-show="!hideSignout" to="/">
         <v-icon icon="mdi-logout" size="35"></v-icon>
       </router-link>
-      <button class="header-btn" v-show="!hideBack" @click="this.$router.go(-1)">
+      <button class="header-btn" v-show="!hideBack" @click="router.go(-1)">
         <v-icon icon="mdi-chevron-right" size="40"></v-icon>
       </button>
       <h1 class="header-title">{{ headerTitle }}</h1>

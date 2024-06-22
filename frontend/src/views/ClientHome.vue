@@ -3,7 +3,7 @@
 </script>
 <template>
   <v-container fluid class="main-section pa-0">
-    <HeaderItem headerTitle="בקשת שירות" homeLink="/ClientHome" hideHome hideBack></HeaderItem>
+    <HeaderItem headerTitle="בקשת שירות" hideHome hideBack></HeaderItem>
     <v-row class="contents-row ma-0 px-3">
       <p class="greeting-title mt-9">שלום <span>{{ clientRepName }}</span>!</p>
       <h3 class="mt-6">תור קרוב</h3>

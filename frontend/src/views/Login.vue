@@ -11,7 +11,8 @@
 </template>
 
 <script>
-export default {
+export default 
+{
   name: 'LoginPage',
   rtl: true,
   data: () => ({
@@ -20,7 +21,11 @@ export default {
   methods: {
     
     },
+  mounted()
+  {
+      localStorage.removeItem("LOCAL_STORAGE_TOKEN_KEY");
   }
+}
 </script>
 
 <style scoped>

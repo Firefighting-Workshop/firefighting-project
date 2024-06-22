@@ -58,7 +58,6 @@ body, html
 .ff-card
 {
   display: flex;
-  flex-wrap: wrap;
   flex-direction: column;
   border: 1px solid #7f7f7f;
   background-color: #ffffff;
@@ -94,6 +93,7 @@ body, html
 {
   height: 40px !important;
   font-size: 18px !important;
+  line-height: unset;
   max-width: 400px;
   font-weight: 500;
   color: #fafafa !important;
@@ -112,6 +112,7 @@ body, html
 {
   height: 40px !important;
   font-size: 18px !important;
+  line-height: unset;
   font-weight: 500;
   color: #d10019 !important;
   border: 2px solid #d10019 !important;
@@ -139,6 +140,7 @@ body, html
   display: flex;
   flex-wrap: wrap;
   flex-direction: column !important;
+  line-height: unset;
   width: 100%;
   max-width: 400px;
   align-self: center;
@@ -182,6 +184,15 @@ body, html
 {
   min-height: 20px;
   line-height: 20px;
+}
+
+.dialog-card-content 
+{
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 50px !important;
 }
 
 #app 
