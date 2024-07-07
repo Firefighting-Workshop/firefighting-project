@@ -5,8 +5,8 @@ const router = useRouter();
 </script>
 <template>
     <v-container class="header-container ma-0 pa-0" fluid>
-      <router-link class="header-btn" v-show="!hideSignout" to="/">
-        <v-icon icon="mdi-logout" size="35"></v-icon>
+      <router-link class="header-btn signout-btn" v-show="!hideSignout" to="/">
+        התנתק
       </router-link>
       <button class="header-btn" v-show="!hideBack" @click="router.go(-1)">
         <v-icon icon="mdi-chevron-right" size="40"></v-icon>
@@ -55,6 +55,14 @@ export default {
   justify-content: center;
   align-items: center;
   text-decoration: none;
+}
+
+.signout-btn
+{
+  width: auto !important;
+  padding: 0px 15px;
+  font-size: 16px;
+  font-weight: 500;
 }
 
 .header-title

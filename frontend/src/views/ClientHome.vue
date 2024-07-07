@@ -17,7 +17,7 @@
       <v-card class="ff-card mt-2 pa-2" v-show="appointmentNotFound" variant="outlined">
         <p class="appointment-not-found">לא מצאנו תור קרוב שנקבע</p>
       </v-card>
-      <v-btn class="ff-main-button mt-6" variant="flat" rounded="0" to="/MakeAppointment" prepend-icon="mdi-calendar-check-outline">קבע תור תחזוקה שנתית</v-btn>
+      <v-btn class="ff-main-button mt-6" v-show="showMakeAppointmentButton" variant="flat" rounded="0" to="/MakeAppointment" prepend-icon="mdi-calendar-check-outline">קבע תור תחזוקה שנתית</v-btn>
     </v-row>
   </v-container>
 </template>
@@ -60,6 +60,7 @@ export default {
       clientStreetNumber: "",
       executiveEmployee: "",
       clientRepName: "",
+      showMakeAppointmentButton: true
     }),
   methods: {
     
@@ -80,6 +81,7 @@ export default {
     await api.get('/nextAppointment', { "token" : token })
     .then((response) => {
       this.appointmentNotFound = false;
+      this.showMakeAppointmentButton = false;
       this.appointmentDate = response.data.apt_date;
       this.clientCity = response.data.client_city;
       this.clientStreet = response.data.client_street;

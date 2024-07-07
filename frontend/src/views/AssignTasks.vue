@@ -5,7 +5,7 @@
 
 <template>
   <v-container fluid class="main-section pa-0">
-    <HeaderItem headerTitle="שיבוץ משימות" homeLink="/ClientHome" hideSignout></HeaderItem>
+    <HeaderItem headerTitle="שיבוץ משימות" homeLink="/EmployeeHome" hideSignout></HeaderItem>
     <v-row class="contents-row ma-0 px-3">
       <div class="work-date-input mt-9">
         <v-date-input
@@ -103,6 +103,8 @@
         </v-card-text>
       </v-card>
     </v-dialog>
+    <v-snackbar class="employee-assigned-snackbar" timeout="2000" color="success" v-model="showEmployeeAssignedMessage">הטכנאי שובץ בהצלחה!</v-snackbar>
+    <v-snackbar class="employee-not-chosen-snackbar" timeout="2000" color="error" v-model="showEmployeeNotChosenMessage">לא נבחר טכנאי מבצע.</v-snackbar>
   </v-container>
 </template>
 
@@ -128,7 +130,9 @@ export default {
     showEmployeeSelectDialog: false,
     forceRerenderKey: 0,
     selectedEmployee: null,
-    isAuthorized: false
+    isAuthorized: false,
+    showEmployeeAssignedMessage: false,
+    showEmployeeNotChosenMessage: false,
   }),
   async mounted() {
     await this.getUserRole();
@@ -230,8 +234,12 @@ export default {
       return `${year}-${month}-${day}`;
     },
     async updateSelectedAppointments() {
+      let isEmployeeSelected = false;
+
       if (this.selectedEmployee)
       {
+        isEmployeeSelected = true;
+
         this.selectedAppointments.forEach(appointment => {
           appointment.emp_firstname = this.selectedEmployee.emp_firstname;
           appointment.emp_lastname = this.selectedEmployee.emp_lastname;
@@ -254,6 +262,15 @@ export default {
       
       this.selectedAppointments = [];
       this.cancelEmployeeSelection();
+
+      if(isEmployeeSelected)
+      {
+        this.showEmployeeAssignedMessage = true;
+      }
+      else
+      {
+        this.showEmployeeNotChosenMessage = true;
+      }
   },
   async cleanAssignments() {
         const duplicateAppointments = this.selectedAppointments.map(appointment => {
@@ -395,5 +412,15 @@ export default {
 .appointment-select-row
 {
   width:25px;
+}
+
+.employee-assigned-snackbar, .employee-not-chosen-snackbar
+{
+  bottom: 10dvh;
+}
+
+.employee-assigned-snackbar .v-snackbar__content, .employee-not-chosen-snackbar .v-snackbar__content
+{
+  text-align: center;
 }
 </style>

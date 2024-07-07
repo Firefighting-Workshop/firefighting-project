@@ -77,6 +77,7 @@
         </v-card-text>
       </v-card>
     </v-dialog>
+    <v-snackbar class="data-saved-snackbar" timeout="2000" color="success" v-model="showDataSavedMessage">פעולתך נקלטה בהצלחה!</v-snackbar>
   </v-container>
   <EditEquipment 
     v-if="showEquipmentEdit"
@@ -155,6 +156,17 @@
   flex-grow: 0;
 }
 </style>
+<style>
+.data-saved-snackbar
+{
+  bottom: 5dvh;
+}
+
+.data-saved-snackbar .v-snackbar__content
+{
+  text-align: center;
+}
+</style>
 <script>
 import API from '@/api/api.js';
 
@@ -179,6 +191,7 @@ export default {
       currentReportedEquipmentDetails: 'טרם נבחר',
       isCurrentEquipBelongsToCabinet: false,
       isRequiredPressureTest: false,
+      showDataSavedMessage: false,
       today: new Date(),
       forceRerenderKey: 0,
     }),
@@ -343,6 +356,7 @@ export default {
         let token = localStorage.getItem('LOCAL_STORAGE_TOKEN_KEY');
         await api.post('/addReportedEquipment', {"token": token, "new_reported_equipment" : newEquipment });
         await this.getAllReportedEquipments();
+        this.showDataSavedMessage = true;
       }
       catch(error)
       {
@@ -359,6 +373,7 @@ export default {
         let token = localStorage.getItem('LOCAL_STORAGE_TOKEN_KEY');
         await api.put('/updateReportedEquipment', {"token": token, "updated_reported_equipment" : updatedEquipment });
         await this.getAllReportedEquipments();
+        this.showDataSavedMessage = true;
       }
       catch(error)
       {
@@ -375,6 +390,7 @@ export default {
         let token = localStorage.getItem('LOCAL_STORAGE_TOKEN_KEY');
         await api.put('/updateReportedEquipment', {"token": token, "updated_reported_equipment" : updatedEquipment });
         await this.getAllReportedEquipments();
+        this.showDataSavedMessage = true;
       }
       catch(error)
       {
@@ -391,6 +407,7 @@ export default {
         let token = localStorage.getItem('LOCAL_STORAGE_TOKEN_KEY');
         await api.put('/updateReportedEquipment', {"token": token, "updated_reported_equipment" : updatedEquipment });
         await this.getAllReportedEquipments();
+        this.showDataSavedMessage = true;
       }
       catch(error)
       {
@@ -407,6 +424,7 @@ export default {
         let token = localStorage.getItem('LOCAL_STORAGE_TOKEN_KEY');
         await api.put('/updateReportedEquipment', {"token": token, "updated_reported_equipment" : updatedEquipment });
         await this.getAllReportedEquipments();
+        this.showDataSavedMessage = true;
       }
       catch(error)
       {
@@ -423,6 +441,7 @@ export default {
         let token = localStorage.getItem('LOCAL_STORAGE_TOKEN_KEY');
         await api.put('/updateReportedEquipment', {"token": token, "updated_reported_equipment" : updatedEquipment });
         await this.getAllReportedEquipments();
+        this.showDataSavedMessage = true;
       }
       catch(error)
       {

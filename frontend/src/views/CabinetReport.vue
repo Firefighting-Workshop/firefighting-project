@@ -62,6 +62,7 @@
         </v-card-text>
       </v-card>
     </v-dialog>
+    <v-snackbar class="data-saved-snackbar" timeout="2000" color="success" v-model="showDataSavedMessage">פעולתך נקלטה בהצלחה!</v-snackbar>
   </v-container>
   <AddCabinet 
     v-if="showAddCabinet"
@@ -132,6 +133,17 @@
     justify-content: center;
 }
 </style>
+<style>
+.data-saved-snackbar
+{
+  bottom: 5dvh;
+}
+
+.data-saved-snackbar .v-snackbar__content
+{
+  text-align: center;
+}
+</style>
 <script>
 import API from '@/api/api.js';
 
@@ -152,6 +164,7 @@ export default {
       showEquipmentInstallation: false,
       showCabinetFix: false,
       showCabinetRemarks: false,
+      showDataSavedMessage: false,
       reportedCabinetNotChosen: true,
       currentReportedCabinetDetails: 'טרם נבחרה',
       appointmentDate: "",
@@ -275,6 +288,7 @@ export default {
         let token = localStorage.getItem('LOCAL_STORAGE_TOKEN_KEY');
         await api.post('/addReportedCabinet', {"token": token, "new_reported_cabinet": newCabinet });
         await this.getAllReportedCabinets();
+        this.showDataSavedMessage = true;
       }
       catch(error)
       {
@@ -291,6 +305,7 @@ export default {
         let token = localStorage.getItem('LOCAL_STORAGE_TOKEN_KEY');
         await api.put('/updateReportedCabinet', {"token": token, "updated_reported_cabinet" : updatedCabinet });
         await this.getAllReportedCabinets();
+        this.showDataSavedMessage = true;
       }
       catch(error)
       {
@@ -307,6 +322,7 @@ export default {
         let token = localStorage.getItem('LOCAL_STORAGE_TOKEN_KEY');
         await api.put('/updateReportedCabinet', {"token": token, "updated_reported_cabinet" : updatedCabinet });
         await this.getAllReportedCabinets();
+        this.showDataSavedMessage = true;
       }
       catch(error)
       {
@@ -323,6 +339,7 @@ export default {
         let token = localStorage.getItem('LOCAL_STORAGE_TOKEN_KEY');
         await api.put('/updateReportedCabinet', {"token": token, "updated_reported_cabinet" : updatedCabinet });
         await this.getAllReportedCabinets();
+        this.showDataSavedMessage = true;
       }
       catch(error)
       {
@@ -339,6 +356,7 @@ export default {
         let token = localStorage.getItem('LOCAL_STORAGE_TOKEN_KEY');
         await api.put('/updateReportedCabinet', {"token": token, "updated_reported_cabinet" : updatedCabinet });
         await this.getAllReportedCabinets();
+        this.showDataSavedMessage = true;
       }
       catch(error)
       {
@@ -355,6 +373,7 @@ export default {
         let token = localStorage.getItem('LOCAL_STORAGE_TOKEN_KEY');
         await api.put('/updateReportedCabinet', {"token": token, "updated_reported_cabinet" : updatedCabinet });
         await this.getAllReportedCabinets();
+        this.showDataSavedMessage = true;
       }
       catch(error)
       {
